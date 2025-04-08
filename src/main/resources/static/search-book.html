@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Search Book</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<nav>
+  <div class="container">
+    <a href="index.html" class="logo">ShelfLife</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Books</a></li>
+      <li><a href="add-book.html">Add Book</a></li>
+      <li><a href="search-book.html">Search Book</a></li>
+      <li><a href="logout.html">Logout</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="container">
+  <h2>Search Books</h2>
+  <input type="text" id="search-input" placeholder="Enter title or author..." onkeyup="searchBooks()">
+  <table>
+    <thead>
+    <tr>
+      <th>Title</th>
+      <th>Author</th>
+      <th>Publisher</th>
+      <th>Date</th>
+      <th>Language</th>
+      <th>Count</th>
+      <th>Cost</th>
+    </tr>
+    </thead>
+    <tbody id="search-results">
+    </tbody>
+  </table>
+</div>
+
+<script>
+  function searchBooks() {
+    const query = document.getElementById("search-input").value.toLowerCase();
+    fetch("http://localhost:8080/books")
+      .then(res => res.json())
+      .then(data => {
+        const filteredBooks = data.filter(book =>
+          book.title.toLowerCase().includes(query) || book.author.toLowerCase().includes(query)
+        );
+        document.getElementById("search-results").innerHTML = filteredBooks.map(book => `
+          <tr>
+            <td>${book.title}</td>
+            <td>${book.author}</td>
+            <td>${book.publisher}</td>
+            <td>${book.publicationDate}</td>
+            <td>${book.languageCode}</td>
+            <td>${book.totalCount}</td>
+            <td>${book.rentingCost}</td>
+          </tr>
+        `).join('');
+      });
+  }
+</script>
+
+</body>
+</html>

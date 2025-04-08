@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>View & Edit Books</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f8f9fa;
+      margin: 0;
+      padding: 0;
+    }
+    nav {
+      background-color: #003366;
+      padding: 10px 0;
+    }
+    nav .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+    nav .logo {
+      color: #fff;
+      font-size: 24px;
+      text-decoration: none;
+    }
+    nav .nav-links {
+      list-style: none;
+      display: flex;
+      gap: 15px;
+    }
+    nav .nav-links li a {
+      color: #fff;
+      text-decoration: none;
+      font-size: 16px;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 40px auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    table, th, td {
+      border: 1px solid #ccc;
+    }
+    th, td {
+      padding: 12px;
+      text-align: left;
+    }
+    th {
+      background-color: #003366;
+      color: white;
+    }
+    .action-btn {
+      padding: 6px 10px;
+      margin-right: 5px;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .edit-btn { background-color: #28a745; }
+    .delete-btn { background-color: #dc3545; }
+  </style>
+  <link rel="stylesheet" href="styles.css">
+
+</head>
+<body>
+
+<nav>
+  <div class="container">
+    <a href="#" class="logo">ShelfLife</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Books</a></li>
+      <li><a href="members.html">Members</a></li>
+      <li><a href="transactions.html">Transactions</a></li>
+      <li><a href="logout.html">Logout</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="container">
+  <h2>Books List</h2>
+  <table>
+    <thead>
+    <tr>
+      <th>Title</th>
+      <th>Author</th>
+      <th>Publisher</th>
+      <th>Date</th>
+      <th>Language</th>
+      <th>Count</th>
+      <th>Cost</th>
+      <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody id="book-list">
+    <!-- Book rows inserted here by JS -->
+    </tbody>
+  </table>
+</div>
+
+<script>
+  const API = 'http://localhost:8080/book';
+
+  function fetchBooks() {
+    fetch(API)
+      .then(res => res.json())
+      .then(data => {
+        const bookList = document.getElementById("book-list");
+        bookList.innerHTML = "";
+        data.forEach(book => {
+          bookList.innerHTML += `
+            <tr>
+              <td>${book.title}</td>
+              <td>${book.author}</td>
+              <td>${book.publisher}</td>
+              <td>${book.publicationDate}</td>
+              <td>${book.languageCode}</td>
+              <td>${book.totalCount}</td>
+              <td>${book.rentingCost}</td>
+              <td>
+                <button class="action-btn edit-btn" onclick='editBook(${JSON.stringify(book)})'>Edit</button>
+                <button class="action-btn delete-btn" onclick='deleteBook(${book.id})'>Delete</button>
+              </td>
+            </tr>
+          `;
+        });
+      });
+  }
+
+  function deleteBook(id) {
+     const API = 'http://localhost:8080/book/delete';
+    if (confirm("Are you sure to delete this book?")) {
+      fetch(`${API}/${id}`, { method: "DELETE" })
+        .then(() => fetchBooks());
+    }
+  }
+
+  function editBook(book) {
+    const newTitle = prompt("Edit Title:", book.title);
+    if (newTitle && newTitle !== book.title) {
+      book.title = newTitle;
+      fetch(`${API}/${book.id}`, {
+        method: "PUT",
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(book)
+      })
+      .then(() => fetchBooks());
+    }
+  }
+
+  fetchBooks();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Book</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<nav>
+    <div class="container">
+        <a href="index.html" class="logo">ShelfLife</a>
+        <ul class="nav-links">
+            <li><a href="index.html">Books</a></li>
+            <li><a href="add-book.html">Add Book</a></li>
+            <li><a href="search-book.html">Search Book</a></li>
+            <li><a href="logout.html">Logout</a></li>
+        </ul>
+    </div>
+</nav>
+
+<div class="container">
+    <h2>Add a New Book</h2>
+    <form id="add-book-form">
+        <label>Title: <input type="text" id="title" required></label><br><br>
+        <label>Author: <input type="text" id="author" required></label><br><br>
+        <label>Publisher: <input type="text" id="publisher"></label><br><br>
+        <label>Publication Date: <input type="date" id="publicationDate"></label><br><br>
+        <label>Language: <input type="text" id="languageCode"></label><br><br>
+        <label>Count: <input type="number" id="totalCount" required></label><br><br>
+        <label>Cost: <input type="number" id="rentingCost"></label><br><br>
+        <button type="submit">Add Book</button>
+    </form>
+</div>
+
+<script>
+    document.getElementById("add-book-form").addEventListener("submit", function(event) {
+      event.preventDefault();
+
+      const book = {
+        title: document.getElementById("title").value,
+        author: document.getElementById("author").value,
+        publisher: document.getElementById("publisher").value,
+        publicationDate: document.getElementById("publicationDate").value,
+        languageCode: document.getElementById("languageCode").value,
+        totalCount: parseInt(document.getElementById("totalCount").value),
+        rentingCost: parseFloat(document.getElementById("rentingCost").value),
+      };
+
+      fetch("http://localhost:8080/books", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(book)
+      })
+      .then(response => response.json())
+      .then(() => {
+        alert("Book added successfully!");
+        window.location.href = "index.html";
+      })
+      .catch(error => console.error("Error:", error));
+    });
+</script>
+
+</body>
+</html>
