@@ -1,8 +1,11 @@
 package com.example.Library_management.entity;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+
+import java.util.Date;
 
 
 @Entity
@@ -21,7 +24,10 @@ public class Book{
     private String isbn;
     private String author;
     private String publisher;
-    private String publicationDate;
+
+    @Temporal(TemporalType.DATE)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private Date publicationDate;
     private String languageCode;
     private int quantity;
     private int rentingCost;

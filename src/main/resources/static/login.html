@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Login | ShelfLife</title>
+    <style>
+        body {
+          font-family: Arial, sans-serif;
+          background-color: #f8f9fa;
+          margin: 0;
+          padding: 0;
+        }
+        nav {
+          background-color: #003366;
+          padding: 10px 0;
+        }
+        nav .container {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 0 20px;
+        }
+        nav .logo {
+          color: #fff;
+          font-size: 24px;
+          text-decoration: none;
+        }
+        .login-container {
+          max-width: 400px;
+          margin: 60px auto;
+          background: #fff;
+          padding: 30px;
+          border-radius: 8px;
+          box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h2 {
+          text-align: center;
+          margin-bottom: 20px;
+        }
+        input[type="email"], input[type="password"] {
+          width: 100%;
+          padding: 12px;
+          margin-bottom: 15px;
+          border: 1px solid #ccc;
+          border-radius: 4px;
+        }
+        button {
+          width: 100%;
+          background-color: #003366;
+          color: white;
+          padding: 12px;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 16px;
+        }
+        button:hover {
+          background-color: #0055aa;
+        }
+        .error {
+          color: red;
+          text-align: center;
+          margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="container">
+        <a href="#" class="logo">ShelfLife</a>
+    </div>
+</nav>
+
+<div class="login-container">
+    <h2>Login</h2>
+    <div class="error" id="error-message"></div>
+    <form id="login-form">
+        <input type="email" id="email" placeholder="Email" required />
+        <input type="password" id="password" placeholder="Password" required />
+        <button type="submit">Login</button>
+    </form>
+</div>
+
+<script>
+    const loginForm = document.getElementById('login-form');
+    const errorDiv = document.getElementById('error-message');
+
+    loginForm.addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      fetch("http://localhost:8080/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error("Invalid credentials");
+        }
+        return res.json();
+      })
+      .then(data => {
+        // Store token in localStorage
+        console.log("Token received:", data.token);
+        localStorage.setItem("token", data.token);
+        sessionStorage.setItem("token", data.token);
+        console.log("Token saved to localstorage: ",data.token);
+
+      alert( "GetToken "+localStorage.getItem("token"));
+
+        // Redirect to dashboard page after successful login
+        window.location.href = "dashboard.html";
+      })
+      .catch(err => {
+       console.error("Error:", error);
+       alert("Login Failed");
+        errorDiv.textContent = "Login failed: " + err.message;
+      });
+    });
+</script>
+
+</body>
+</html>

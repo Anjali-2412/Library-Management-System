@@ -21,7 +21,9 @@ public class IssuedBookService
     public IssuedBook findById(long id){
         return issuedBookRepository.findById(id).orElse(null);
     }
-
+    public List<IssuedBook> FindByReturnedFalse(){
+       return issuedBookRepository.findByReturnedFalse();
+    }
     public List<IssuedBook> getIssueBook(){
         return issuedBookRepository.findAll();
     }

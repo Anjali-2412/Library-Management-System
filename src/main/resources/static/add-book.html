@@ -10,11 +10,14 @@
 
 <nav>
     <div class="container">
-        <a href="index.html" class="logo">ShelfLife</a>
+        <a href="dashboard.html" class="logo">ShelfLife</a>
         <ul class="nav-links">
+            <li><a href="dashboard.html">Dashboard</a></li>
             <li><a href="index.html">Books</a></li>
-            <li><a href="add-book.html">Add Book</a></li>
+            <li><a href="add-book.html" class="active">Add Book</a></li>
             <li><a href="search-book.html">Search Book</a></li>
+            <li><a href="members.html">Members</a></li>
+            <li><a href="transactions.html">Transactions</a></li>
             <li><a href="logout.html">Logout</a></li>
         </ul>
     </div>
@@ -48,9 +51,12 @@
         rentingCost: parseFloat(document.getElementById("rentingCost").value),
       };
 
-      fetch("http://localhost:8080/books", {
+      fetch("http://localhost:8080/book", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + localStorage.getItem("token")
+        },
         body: JSON.stringify(book)
       })
       .then(response => response.json())

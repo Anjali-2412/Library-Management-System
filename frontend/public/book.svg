@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <title>Book Icon</title>
+    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <path d="M21,4H3C2.4,4,2,4.4,2,5v14c0,0.6,0.4,1,1,1h18c0.6,0,1-0.4,1-1V5C22,4.4,21.6,4,21,4z" fill="#1976d2"/>
+        <path d="M3,4h18c0.6,0,1,0.4,1,1v14c0,0.6-0.4,1-1,1H3c-0.6,0-1-0.4-1-1V5C2,4.4,2.4,4,3,4z M4,6v12h16V6H4z" fill="#ffffff"/>
+        <rect x="6" y="8" width="12" height="2" fill="#ffffff"/>
+        <rect x="6" y="12" width="12" height="2" fill="#ffffff"/>
+    </g>
+</svg> 

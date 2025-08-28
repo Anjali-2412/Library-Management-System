@@ -5,6 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>View & Edit Books</title>
   <style>
+    .readonly-display {
+  background: #f5f5f5;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 6px 10px;
+  color: #555;
+  cursor: not-allowed;
+}
+.readonly-hint {
+  font-size: 0.8rem;
+  color: #888;
+  margin-bottom: 10px;
+}
+
+
+
     body {
       font-family: Arial, sans-serif;
       background-color: #f8f9fa;
@@ -71,6 +87,21 @@
     }
     .edit-btn { background-color: #28a745; }
     .delete-btn { background-color: #dc3545; }
+
+    /* Modal styles */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; }
+    .modal { background: #fff; width: 520px; max-width: 92vw; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+    .modal header { padding: 14px 16px; border-bottom: 1px solid #eee; font-weight: bold; display: flex; align-items: center; justify-content: space-between; }
+    .modal header button { background: transparent; border: none; font-size: 20px; cursor: pointer; }
+    .modal .content { padding: 16px; }
+    .modal .form-row { display: grid; grid-template-columns: 140px 1fr; gap: 10px; margin-bottom: 10px; align-items: center; }
+    .modal .form-row input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+    .readonly-display { padding: 8px; background: #e9ecef; border: 1px dashed #bbb; border-radius: 4px; color: #6c757d; cursor: not-allowed; user-select: none; pointer-events: none; }
+    .readonly-hint { font-size: 12px; color: #777; margin-top: -6px; margin-left: 140px; }
+    .modal footer { padding: 12px 16px; border-top: 1px solid #eee; display: flex; gap: 8px; justify-content: flex-end; }
+    .btn { padding: 8px 12px; border: 0; border-radius: 4px; cursor: pointer; }
+    .btn.primary { background: #003366; color: #fff; }
+    .btn.ghost { background: #f0f0f0; }
   </style>
   <link rel="stylesheet" href="styles.css">
 
@@ -79,9 +110,12 @@
 
 <nav>
   <div class="container">
-    <a href="#" class="logo">ShelfLife</a>
+    <a href="dashboard.html" class="logo">ShelfLife</a>
     <ul class="nav-links">
-      <li><a href="index.html">Books</a></li>
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="index.html" class="active">Books</a></li>
+      <li><a href="add-book.html">Add Book</a></li>
+      <li><a href="search-book.html">Search Book</a></li>
       <li><a href="members.html">Members</a></li>
       <li><a href="transactions.html">Transactions</a></li>
       <li><a href="logout.html">Logout</a></li>
@@ -110,11 +144,42 @@
   </table>
 </div>
 
+<!-- Edit Book Modal -->
+<div id="editModal" class="modal-overlay">
+  <div class="modal">
+    <header>
+      <span>Edit Book</span>
+      <button type="button" onclick="closeEditModal()">×</button>
+    </header>
+    <div class="content">
+      <div class="form-row"><label>Title</label><div id="edit-title" class="readonly-display"></div></div>
+      <div class="readonly-hint">Title is fixed and cannot be changed</div>
+      <div class="form-row"><label for="edit-author">Author</label><input id="edit-author" type="text"></div>
+      <div class="form-row"><label for="edit-publisher">Publisher</label><input id="edit-publisher" type="text"></div>
+      <div class="form-row"><label for="edit-date">Publication Date</label><input id="edit-date" type="date"></div>
+      <div class="form-row"><label for="edit-language">Language Code</label><input id="edit-language" type="text"></div>
+      <div class="form-row"><label for="edit-quantity">Quantity</label><input id="edit-quantity" type="number" min="0"></div>
+      <div class="form-row"><label for="edit-renting">Renting Cost</label><input id="edit-renting" type="number" step="0.01" min="0"></div>
+      <div class="form-row"><label for="edit-price">Price</label><input id="edit-price" type="number" step="0.01" min="0"></div>
+      <div class="form-row"><label for="edit-isbn">ISBN</label><input id="edit-isbn" type="text"></div>
+      <div class="form-row"><label for="edit-availability">Available</label><input id="edit-availability" type="checkbox"></div>
+    </div>
+    <footer>
+      <button class="btn ghost" type="button" onclick="closeEditModal()">Cancel</button>
+      <button class="btn primary" type="button" onclick="saveEdit()">Save</button>
+    </footer>
+  </div>
+  
+</div>
+
 <script>
-  const API = 'http://localhost:8080/book';
 
   function fetchBooks() {
-    fetch(API)
+    fetch("http://localhost:8080/book", {
+    headers: {
+      "Authorization": "Bearer " + localStorage.getItem("token")
+    }
+  })
       .then(res => res.json())
       .then(data => {
         const bookList = document.getElementById("book-list");
@@ -129,6 +194,8 @@
               <td>${book.languageCode}</td>
               <td>${book.totalCount}</td>
               <td>${book.rentingCost}</td>
+               <td>${book.quantity}</td>
+
               <td>
                 <button class="action-btn edit-btn" onclick='editBook(${JSON.stringify(book)})'>Edit</button>
                 <button class="action-btn delete-btn" onclick='deleteBook(${book.id})'>Delete</button>
@@ -139,25 +206,82 @@
       });
   }
 
-  function deleteBook(id) {
-     const API = 'http://localhost:8080/book/delete';
-    if (confirm("Are you sure to delete this book?")) {
-      fetch(`${API}/${id}`, { method: "DELETE" })
-        .then(() => fetchBooks());
-    }
+function deleteBook(id) {
+  if (confirm("Are you sure to delete this book?")) {
+    fetch(`http://localhost:8080/book/delete/${id}`, {
+      method: "DELETE",
+      headers: {
+        "Authorization": "Bearer " + localStorage.getItem("token")
+      }
+    })
+    .then(() => fetchBooks())
+    .catch(error => {
+      console.error("Delete failed:", error);
+      alert("Failed to delete the book. You might not be authorized.");
+    });
   }
+}
+
+
+  let __editOriginalTitle = null;
 
   function editBook(book) {
-    const newTitle = prompt("Edit Title:", book.title);
-    if (newTitle && newTitle !== book.title) {
-      book.title = newTitle;
-      fetch(`${API}/${book.id}`, {
-        method: "PUT",
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(book)
-      })
-      .then(() => fetchBooks());
-    }
+    console.log("Original book:", book);
+    __editOriginalTitle = book.title;
+
+    document.getElementById('edit-title').textContent = book.title || '';
+    document.getElementById('edit-author').value = book.author || '';
+    document.getElementById('edit-publisher').value = book.publisher || '';
+    // Normalize date to YYYY-MM-DD if it contains time
+    const dateValue = (book.publicationDate || '').toString().substring(0,10);
+    document.getElementById('edit-date').value = dateValue;
+    document.getElementById('edit-language').value = book.languageCode || '';
+    document.getElementById('edit-quantity').value = (book.quantity ?? book.totalCount ?? 0);
+    document.getElementById('edit-renting').value = book.rentingCost ?? 0;
+    document.getElementById('edit-price').value = book.price ?? 0;
+    document.getElementById('edit-isbn').value = book.isbn || '';
+    document.getElementById('edit-availability').checked = Boolean(book.availability ?? true);
+
+    document.getElementById('editModal').style.display = 'flex';
+  }
+
+  function closeEditModal(){
+    document.getElementById('editModal').style.display = 'none';
+  }
+
+  function saveEdit(){
+    if(!__editOriginalTitle){ closeEditModal(); return; }
+    const updatedBook = {
+      title: __editOriginalTitle,
+      author: document.getElementById('edit-author').value,
+      publisher: document.getElementById('edit-publisher').value,
+      publicationDate: document.getElementById('edit-date').value,
+      languageCode: document.getElementById('edit-language').value,
+      quantity: Number(document.getElementById('edit-quantity').value || 0),
+      rentingCost: Number(document.getElementById('edit-renting').value || 0),
+      price: Number(document.getElementById('edit-price').value || 0),
+      isbn: document.getElementById('edit-isbn').value,
+      availability: document.getElementById('edit-availability').checked
+    };
+
+    console.log("Sending request to:", `http://localhost:8080/book/edit/${__editOriginalTitle}`);
+    fetch(`http://localhost:8080/book/edit/${encodeURIComponent(__editOriginalTitle)}`, {
+      method: "PUT",
+      headers: { 
+        'Content-Type': 'application/json',
+        "Authorization": "Bearer " + localStorage.getItem("token")
+      },
+      body: JSON.stringify(updatedBook)
+    })
+    .then(response => {
+      if (response.ok) {
+        closeEditModal();
+        fetchBooks();
+      } else {
+        alert("Failed to update book");
+      }
+    })
+    .catch(() => alert("Failed to update the book"));
   }
 
   fetchBooks();

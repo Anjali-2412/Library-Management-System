@@ -21,5 +21,7 @@ public class Member {
     private  String phone;
     private double outstandingDept;
 
+   // @Version
+    //private Integer version; //Handles optimistic Locking
 
 }

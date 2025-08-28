@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Dashboard - ShelfLife</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: transform 0.2s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #003366;
+            margin-bottom: 10px;
+        }
+        
+        .stat-label {
+            font-size: 1.1rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .stat-description {
+            font-size: 0.9rem;
+            color: #888;
+        }
+        
+        .charts-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .chart-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .chart-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #003366;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .recent-activity {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .activity-item {
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+        
+        .activity-text {
+            flex: 1;
+        }
+        
+        .activity-time {
+            color: #888;
+            font-size: 0.9rem;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        
+        .status-available { background-color: #28a745; }
+        .status-issued { background-color: #ffc107; }
+        .status-overdue { background-color: #dc3545; }
+        
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .action-btn {
+            background: #003366;
+            color: white;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.2s;
+            text-decoration: none;
+            text-align: center;
+            display: block;
+        }
+        
+        .action-btn:hover {
+            background: #004080;
+        }
+        
+        .overdue-alert {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="container">
+        <a href="dashboard.html" class="logo">ShelfLife</a>
+        <ul class="nav-links">
+            <li><a href="dashboard.html" class="active">Dashboard</a></li>
+            <li><a href="index.html">Books</a></li>
+            <li><a href="add-book.html">Add Book</a></li>
+            <li><a href="search-book.html">Search Book</a></li>
+            <li><a href="members.html">Members</a></li>
+            <li><a href="transactions.html">Transactions</a></li>
+            <li><a href="logout.html">Logout</a></li>
+        </ul>
+    </div>
+</nav>
+
+<div class="dashboard-container">
+    <h1>Library Dashboard</h1>
+    
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <a href="add-book.html" class="action-btn">Add New Book</a>
+        <a href="members.html" class="action-btn">Manage Members</a>
+        <a href="transactions.html" class="action-btn">View Transactions</a>
+        <a href="search-book.html" class="action-btn">Search Books</a>
+    </div>
+    
+    <!-- Overdue Books Alert -->
+    <div id="overdue-alert" class="overdue-alert" style="display: none;">
+        <strong>⚠️ Overdue Books Alert:</strong> <span id="overdue-count">0</span> books are overdue and need attention.
+    </div>
+    
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number" id="total-books">0</div>
+            <div class="stat-label">Total Books</div>
+            <div class="stat-description">Books in library</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-number" id="available-books">0</div>
+            <div class="stat-label">Available Books</div>
+            <div class="stat-description">Ready to borrow</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-number" id="issued-books">0</div>
+            <div class="stat-label">Issued Books</div>
+            <div class="stat-description">Currently borrowed</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-number" id="total-members">0</div>
+            <div class="stat-label">Total Members</div>
+            <div class="stat-description">Registered members</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-number" id="overdue-books">0</div>
+            <div class="stat-label">Overdue Books</div>
+            <div class="stat-description">Past due date</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-number" id="total-fines">₹0</div>
+            <div class="stat-label">Total Fines</div>
+            <div class="stat-description">Outstanding fines</div>
+        </div>
+    </div>
+    
+    <!-- Charts Section -->
+    <div class="charts-section">
+        <div class="chart-card">
+            <div class="chart-title">Book Status Distribution</div>
+            <canvas id="bookStatusChart" width="400" height="200"></canvas>
+        </div>
+        
+        <div class="chart-card">
+            <div class="chart-title">Recent Activity</div>
+            <div id="recent-activity-list">
+                <!-- Activity items will be populated here -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Transactions -->
+    <div class="recent-activity">
+        <h3>Recent Transactions</h3>
+        <div id="recent-transactions">
+            <!-- Transaction items will be populated here -->
+        </div>
+    </div>
+</div>
+
+<script>
+    // Dashboard data
+    let dashboardData = {
+        totalBooks: 0,
+        availableBooks: 0,
+        issuedBooks: 0,
+        totalMembers: 0,
+        overdueBooks: 0,
+        totalFines: 0,
+        recentTransactions: []
+    };
+
+    // Fetch all dashboard data
+    async function loadDashboardData() {
+        try {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                window.location.href = "login.html";
+                return;
+            }
+
+            const headers = {
+                "Authorization": "Bearer " + token
+            };
+
+            // Fetch books
+            const booksResponse = await fetch("http://localhost:8080/book", { headers });
+            const books = await booksResponse.json();
+            
+            // Fetch issued books
+            const issuedResponse = await fetch("http://localhost:8080/issuebook", { headers });
+            const issuedBooks = await issuedResponse.json();
+            
+            // Fetch active issues
+            const activeResponse = await fetch("http://localhost:8080/issuebook/active", { headers });
+            const activeIssues = await activeResponse.json();
+            
+            // Fetch members
+            const membersResponse = await fetch("http://localhost:8080/member", { headers });
+            const members = await membersResponse.json();
+
+            // Calculate statistics
+            dashboardData.totalBooks = books.length;
+            dashboardData.availableBooks = books.filter(book => book.availability).length;
+            dashboardData.issuedBooks = activeIssues.length;
+            dashboardData.totalMembers = members.length;
+            
+            // Calculate overdue books (books issued more than 14 days ago)
+            const today = new Date();
+            const overdueBooks = activeIssues.filter(issue => {
+                const issueDate = new Date(issue.issueDate);
+                const daysDiff = (today - issueDate) / (1000 * 60 * 60 * 24);
+                return daysDiff > 14;
+            });
+            dashboardData.overdueBooks = overdueBooks.length;
+            
+            // Calculate total fines
+            dashboardData.totalFines = issuedBooks
+                .filter(issue => issue.fine && issue.fine > 0 && !issue.finepaid)
+                .reduce((sum, issue) => sum + issue.fine, 0);
+            
+            // Get recent transactions (last 10)
+            dashboardData.recentTransactions = issuedBooks
+                .sort((a, b) => new Date(b.issueDate) - new Date(a.issueDate))
+                .slice(0, 10);
+
+            updateDashboard();
+            updateCharts();
+            updateRecentActivity();
+            
+        } catch (error) {
+            console.error("Error loading dashboard data:", error);
+        }
+    }
+
+    // Update dashboard statistics
+    function updateDashboard() {
+        document.getElementById("total-books").textContent = dashboardData.totalBooks;
+        document.getElementById("available-books").textContent = dashboardData.availableBooks;
+        document.getElementById("issued-books").textContent = dashboardData.issuedBooks;
+        document.getElementById("total-members").textContent = dashboardData.totalMembers;
+        document.getElementById("overdue-books").textContent = dashboardData.overdueBooks;
+        document.getElementById("total-fines").textContent = "₹" + dashboardData.totalFines.toFixed(2);
+        
+        // Show/hide overdue alert
+        const overdueAlert = document.getElementById("overdue-alert");
+        const overdueCount = document.getElementById("overdue-count");
+        if (dashboardData.overdueBooks > 0) {
+            overdueAlert.style.display = "block";
+            overdueCount.textContent = dashboardData.overdueBooks;
+        } else {
+            overdueAlert.style.display = "none";
+        }
+    }
+
+    // Update charts
+    function updateCharts() {
+        const ctx = document.getElementById('bookStatusChart').getContext('2d');
+        
+        // Simple chart using canvas
+        const available = dashboardData.availableBooks;
+        const issued = dashboardData.issuedBooks;
+        const total = dashboardData.totalBooks;
+        
+        // Clear canvas
+        ctx.clearRect(0, 0, 400, 200);
+        
+        // Draw pie chart
+        const centerX = 200;
+        const centerY = 100;
+        const radius = 80;
+        
+        // Available books (green)
+        const availableAngle = (available / total) * 2 * Math.PI;
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, 0, availableAngle);
+        ctx.closePath();
+        ctx.fillStyle = '#28a745';
+        ctx.fill();
+        
+        // Issued books (orange)
+        const issuedAngle = (issued / total) * 2 * Math.PI;
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, availableAngle, availableAngle + issuedAngle);
+        ctx.closePath();
+        ctx.fillStyle = '#ffc107';
+        ctx.fill();
+        
+        // Legend
+        ctx.fillStyle = '#333';
+        ctx.font = '12px Arial';
+        ctx.fillText('Available: ' + available, 20, 30);
+        ctx.fillText('Issued: ' + issued, 20, 50);
+    }
+
+    // Update recent activity
+    function updateRecentActivity() {
+        const activityList = document.getElementById('recent-activity-list');
+        const transactionsList = document.getElementById('recent-transactions');
+        
+        // Recent activity (simplified)
+        activityList.innerHTML = `
+            <div class="activity-item">
+                <div class="activity-text">
+                    <span class="status-indicator status-available"></span>
+                    ${dashboardData.totalBooks} books in library
+                </div>
+            </div>
+            <div class="activity-item">
+                <div class="activity-text">
+                    <span class="status-indicator status-issued"></span>
+                    ${dashboardData.issuedBooks} books currently issued
+                </div>
+            </div>
+            <div class="activity-item">
+                <div class="activity-text">
+                    <span class="status-indicator status-overdue"></span>
+                    ${dashboardData.overdueBooks} books overdue
+                </div>
+            </div>
+        `;
+        
+        // Recent transactions
+        transactionsList.innerHTML = dashboardData.recentTransactions.map(transaction => {
+            const issueDate = new Date(transaction.issueDate).toLocaleDateString();
+            const status = transaction.returned ? 'Returned' : 'Issued';
+            const statusClass = transaction.returned ? 'status-available' : 'status-issued';
+            
+            return `
+                <div class="activity-item">
+                    <div class="activity-text">
+                        <span class="status-indicator ${statusClass}"></span>
+                        ${transaction.book?.title || 'Unknown Book'} - ${status}
+                    </div>
+                    <div class="activity-time">${issueDate}</div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // Load dashboard on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        loadDashboardData();
+        
+        // Refresh data every 30 seconds
+        setInterval(loadDashboardData, 30000);
+    });
+</script>
+
+</body>
+</html> 

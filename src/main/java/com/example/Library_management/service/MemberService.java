@@ -2,6 +2,7 @@ package com.example.Library_management.service;
 
 import com.example.Library_management.entity.Member;
 import com.example.Library_management.repository.MemberRepository;
+import jakarta.persistence.OptimisticLockException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,7 +16,13 @@ public class MemberService {
     private MemberRepository memberRepository;
 
     public void save (Member member){
-        memberRepository.save(member);
+        try{
+            memberRepository.save(member);
+        }
+        catch (OptimisticLockException e){
+            throw new RuntimeException("Member was updated or deleted by another transaction",e);
+        }
+
     }
 
     public void deleteMemberById(long id){

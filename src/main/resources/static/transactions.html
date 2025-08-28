@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transactions - ShelfLife</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .transaction-filters {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .filter-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .filter-row select, .filter-row input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .btn-primary {
+            background-color: #003366;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn-primary:hover {
+            background-color: #004080;
+        }
+        
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .btn-warning {
+            background-color: #ffc107;
+            color: #212529;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .transaction-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #003366;
+        }
+        
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .status-issued {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-returned {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status-overdue {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .fine-amount {
+            color: #dc3545;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="container">
+        <a href="dashboard.html" class="logo">ShelfLife</a>
+        <ul class="nav-links">
+            <li><a href="dashboard.html">Dashboard</a></li>
+            <li><a href="index.html">Books</a></li>
+            <li><a href="add-book.html">Add Book</a></li>
+            <li><a href="search-book.html">Search Book</a></li>
+            <li><a href="members.html">Members</a></li>
+            <li><a href="transactions.html" class="active">Transactions</a></li>
+            <li><a href="logout.html">Logout</a></li>
+        </ul>
+    </div>
+</nav>
+
+<div class="container">
+    <h2>Transaction Management</h2>
+    
+    <!-- Transaction Statistics -->
+    <div class="transaction-stats">
+        <div class="stat-card">
+            <div class="stat-number" id="total-transactions">0</div>
+            <div class="stat-label">Total Transactions</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="active-issues">0</div>
+            <div class="stat-label">Active Issues</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="overdue-issues">0</div>
+            <div class="stat-label">Overdue Issues</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="total-fines">₹0</div>
+            <div class="stat-label">Total Fines</div>
+        </div>
+    </div>
+    
+    <!-- Issue New Book Form -->
+    <div class="transaction-filters">
+        <h3>Issue New Book</h3>
+        <form id="issue-book-form">
+            <div class="filter-row">
+                <select id="member-select" required>
+                    <option value="">Select Member</option>
+                </select>
+                <select id="book-select" required>
+                    <option value="">Select Book</option>
+                </select>
+                <button type="submit" class="btn-primary">Issue Book</button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Transaction Filters -->
+    <div class="transaction-filters">
+        <h3>Filter Transactions</h3>
+        <div class="filter-row">
+            <select id="status-filter">
+                <option value="">All Status</option>
+                <option value="issued">Issued</option>
+                <option value="returned">Returned</option>
+                <option value="overdue">Overdue</option>
+            </select>
+            <input type="date" id="date-filter" placeholder="Filter by date">
+            <button onclick="applyFilters()" class="btn-primary">Apply Filters</button>
+            <button onclick="clearFilters()" class="btn-primary" style="background-color: #6c757d;">Clear</button>
+        </div>
+    </div>
+    
+    <!-- Transactions Table -->
+    <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
+        <h3>All Transactions</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background-color: #003366; color: white;">
+                    <th style="padding: 12px; text-align: left;">Book Title</th>
+                    <th style="padding: 12px; text-align: left;">Member Name</th>
+                    <th style="padding: 12px; text-align: left;">Issue Date</th>
+                    <th style="padding: 12px; text-align: left;">Return Date</th>
+                    <th style="padding: 12px; text-align: left;">Status</th>
+                    <th style="padding: 12px; text-align: left;">Fine</th>
+                    <th style="padding: 12px; text-align: left;">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="transactions-list">
+                <!-- Transaction rows will be populated here -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    let transactions = [];
+    let members = [];
+    let books = [];
+    let filteredTransactions = [];
+
+    // Load data on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        loadTransactions();
+        loadMembers();
+        loadBooks();
+    });
+
+    // Fetch all transactions
+    async function loadTransactions() {
+        try {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                window.location.href = "login.html";
+                return;
+            }
+
+            const response = await fetch("http://localhost:8080/issuebook", {
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            });
+            
+            transactions = await response.json();
+            filteredTransactions = [...transactions];
+            updateTransactionsTable();
+            updateTransactionStats();
+            
+        } catch (error) {
+            console.error("Error loading transactions:", error);
+        }
+    }
+
+    // Load members for dropdown
+    async function loadMembers() {
+        try {
+            const token = localStorage.getItem("token");
+            const response = await fetch("http://localhost:8080/member", {
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            });
+            
+            members = await response.json();
+            updateMemberDropdown();
+            
+        } catch (error) {
+            console.error("Error loading members:", error);
+        }
+    }
+
+    // Load books for dropdown
+    async function loadBooks() {
+        try {
+            const token = localStorage.getItem("token");
+            const response = await fetch("http://localhost:8080/book", {
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            });
+            
+            books = await response.json();
+            updateBookDropdown();
+            
+        } catch (error) {
+            console.error("Error loading books:", error);
+        }
+    }
+
+    // Update member dropdown
+    function updateMemberDropdown() {
+        const memberSelect = document.getElementById("member-select");
+        memberSelect.innerHTML = '<option value="">Select Member</option>';
+        members.forEach(member => {
+            memberSelect.innerHTML += `<option value="${member.id}">${member.name} (${member.email})</option>`;
+        });
+    }
+
+    // Update book dropdown
+    function updateBookDropdown() {
+        const bookSelect = document.getElementById("book-select");
+        bookSelect.innerHTML = '<option value="">Select Book</option>';
+        books.filter(book => book.availability && book.quantity > 0).forEach(book => {
+            bookSelect.innerHTML += `<option value="${book.id}">${book.title} by ${book.author}</option>`;
+        });
+    }
+
+    // Update transactions table
+    function updateTransactionsTable() {
+        const transactionsList = document.getElementById("transactions-list");
+        transactionsList.innerHTML = filteredTransactions.map(transaction => {
+            const issueDate = new Date(transaction.issueDate).toLocaleDateString();
+            const returnDate = transaction.returnDate ? new Date(transaction.returnDate).toLocaleDateString() : '-';
+            
+            // Determine status
+            let status = 'issued';
+            let statusClass = 'status-issued';
+            let statusText = 'Issued';
+            
+            if (transaction.returned) {
+                status = 'returned';
+                statusClass = 'status-returned';
+                statusText = 'Returned';
+            } else {
+                // Check if overdue
+                const today = new Date();
+                const issueDateObj = new Date(transaction.issueDate);
+                const daysDiff = (today - issueDateObj) / (1000 * 60 * 60 * 24);
+                if (daysDiff > 14) {
+                    status = 'overdue';
+                    statusClass = 'status-overdue';
+                    statusText = 'Overdue';
+                }
+            }
+            
+            return `
+                <tr>
+                    <td style="padding: 12px; border-bottom: 1px solid #ddd;">${transaction.book?.title || 'Unknown'}</td>
+                    <td style="padding: 12px; border-bottom: 1px solid #ddd;">${transaction.member?.name || 'Unknown'}</td>
+                    <td style="padding: 12px; border-bottom: 1px solid #ddd;">${issueDate}</td>
+                    <td style="padding: 12px; border-bottom: 1px solid #ddd;">${returnDate}</td>
+                    <td style="padding: 12px; border-bottom: 1px solid #ddd;">
+                        <span class="status-badge ${statusClass}">${statusText}</span>
+                    </td>
+                    <td style="padding: 12px; border-bottom: 1px solid #ddd;">
+                        ${transaction.fine > 0 ? `<span class="fine-amount">₹${transaction.fine}</span>` : '₹0'}
+                    </td>
+                    <td style="padding: 12px; border-bottom: 1px solid #ddd;">
+                        ${!transaction.returned ? 
+                            `<button class="btn-success" onclick="returnBook(${transaction.id})">Return</button>` : 
+                            (transaction.fine > 0 && !transaction.finepaid ? 
+                                `<button class="btn-warning" onclick="payFine(${transaction.id})">Pay Fine</button>` : 
+                                'Completed')
+                        }
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    // Update transaction statistics
+    function updateTransactionStats() {
+        const totalTransactions = transactions.length;
+        const activeIssues = transactions.filter(t => !t.returned).length;
+        const overdueIssues = transactions.filter(t => {
+            if (t.returned) return false;
+            const today = new Date();
+            const issueDate = new Date(t.issueDate);
+            const daysDiff = (today - issueDate) / (1000 * 60 * 60 * 24);
+            return daysDiff > 14;
+        }).length;
+        const totalFines = transactions
+            .filter(t => t.fine > 0 && !t.finepaid)
+            .reduce((sum, t) => sum + t.fine, 0);
+
+        document.getElementById("total-transactions").textContent = totalTransactions;
+        document.getElementById("active-issues").textContent = activeIssues;
+        document.getElementById("overdue-issues").textContent = overdueIssues;
+        document.getElementById("total-fines").textContent = "₹" + totalFines.toFixed(2);
+    }
+
+    // Issue book form submission
+    document.getElementById("issue-book-form").addEventListener("submit", async function(event) {
+        event.preventDefault();
+        
+        const memberId = document.getElementById("member-select").value;
+        const bookId = document.getElementById("book-select").value;
+        
+        if (!memberId || !bookId) {
+            alert("Please select both member and book.");
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem("token");
+            const response = await fetch("http://localhost:8080/issuebook", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "Authorization": "Bearer " + token
+                },
+                body: `memberId=${memberId}&bookId=${bookId}`
+            });
+
+            if (response.ok) {
+                alert("Book issued successfully!");
+                document.getElementById("issue-book-form").reset();
+                loadTransactions();
+                loadBooks(); // Refresh book availability
+            } else {
+                const errorText = await response.text();
+                alert("Failed to issue book: " + errorText);
+            }
+        } catch (error) {
+            console.error("Error issuing book:", error);
+            alert("Error issuing book. Please try again.");
+        }
+    });
+
+    // Return book
+    async function returnBook(transactionId) {
+        if (confirm("Are you sure you want to return this book?")) {
+            try {
+                const token = localStorage.getItem("token");
+                const response = await fetch(`http://localhost:8080/issuebook/return/${transactionId}`, {
+                    method: "POST",
+                    headers: {
+                        "Authorization": "Bearer " + token
+                    }
+                });
+
+                if (response.ok) {
+                    const result = await response.text();
+                    alert(result);
+                    loadTransactions();
+                    loadBooks(); // Refresh book availability
+                } else {
+                    const errorText = await response.text();
+                    alert("Failed to return book: " + errorText);
+                }
+            } catch (error) {
+                console.error("Error returning book:", error);
+                alert("Error returning book. Please try again.");
+            }
+        }
+    }
+
+    // Pay fine
+    async function payFine(transactionId) {
+        const paymentMode = prompt("Enter payment mode (cash/card/online):");
+        if (paymentMode) {
+            try {
+                const token = localStorage.getItem("token");
+                const response = await fetch(`http://localhost:8080/issuebook/pay-fine-online/${transactionId}?paymentMode=${paymentMode}`, {
+                    method: "POST",
+                    headers: {
+                        "Authorization": "Bearer " + token
+                    }
+                });
+
+                if (response.ok) {
+                    const result = await response.text();
+                    alert(result);
+                    loadTransactions();
+                } else {
+                    const errorText = await response.text();
+                    alert("Failed to pay fine: " + errorText);
+                }
+            } catch (error) {
+                console.error("Error paying fine:", error);
+                alert("Error paying fine. Please try again.");
+            }
+        }
+    }
+
+    // Apply filters
+    function applyFilters() {
+        const statusFilter = document.getElementById("status-filter").value;
+        const dateFilter = document.getElementById("date-filter").value;
+        
+        filteredTransactions = transactions.filter(transaction => {
+            let matchesStatus = true;
+            let matchesDate = true;
+            
+            // Status filter
+            if (statusFilter) {
+                if (statusFilter === 'returned') {
+                    matchesStatus = transaction.returned;
+                } else if (statusFilter === 'issued') {
+                    matchesStatus = !transaction.returned;
+                } else if (statusFilter === 'overdue') {
+                    if (transaction.returned) return false;
+                    const today = new Date();
+                    const issueDate = new Date(transaction.issueDate);
+                    const daysDiff = (today - issueDate) / (1000 * 60 * 60 * 24);
+                    matchesStatus = daysDiff > 14;
+                }
+            }
+            
+            // Date filter
+            if (dateFilter) {
+                const transactionDate = new Date(transaction.issueDate).toISOString().split('T')[0];
+                matchesDate = transactionDate === dateFilter;
+            }
+            
+            return matchesStatus && matchesDate;
+        });
+        
+        updateTransactionsTable();
+    }
+
+    // Clear filters
+    function clearFilters() {
+        document.getElementById("status-filter").value = "";
+        document.getElementById("date-filter").value = "";
+        filteredTransactions = [...transactions];
+        updateTransactionsTable();
+    }
+</script>
+
+</body>
+</html> 

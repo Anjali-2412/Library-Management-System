@@ -29,5 +29,13 @@ public class IssuedBook {
         private double fine = 0;
         private boolean returned =false;
 
+        @Column(name = "fine_paid")
+        private Boolean finepaid =false;
+
+        @Column(name ="payment_mode")
+        private String paymentMode;
+
+
+
 
 }
