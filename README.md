@@ -57,7 +57,7 @@ Deployment: Docker, Render/Heroku (optional)
 
 Testing: JUnit, Postman
 
-<img width="1604" height="693" alt="image" src="https://github.com/user-attachments/assets/0ad07c0a-abbd-42b5-a023-de28cf2c6796" />
+
 
 <img width="1733" height="690" alt="image" src="https://github.com/user-attachments/assets/fde8b68a-7a77-4d0a-b7de-329dd448854f" />
 
